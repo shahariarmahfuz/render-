@@ -14,9 +14,12 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir /var/run/sshd && \
     useradd -m -s /bin/bash -u 1000 devuser && \
     echo "devuser:123456" | chpasswd && \
+    rm -rf /etc/ssh/sshd_config.d/* && \
+    sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config && \
+    sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config && \
+    sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/g' /etc/ssh/sshd_config && \
+    sed -i 's/^#*UsePAM.*/UsePAM no/g' /etc/ssh/sshd_config && \
     echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config && \
-    echo "PermitRootLogin no" >> /etc/ssh/sshd_config && \
-    echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config && \
     echo "UsePAM no" >> /etc/ssh/sshd_config
 
 COPY start.sh /start.sh
