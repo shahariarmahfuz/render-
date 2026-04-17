@@ -4,7 +4,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM=xterm-256color
 ENV COLORTERM=truecolor
 
-# sudo প্যাকেজটি আর দরকার নেই
 RUN apt-get update && apt-get install -y \
     openssh-server curl wget git nano python3 \
     && curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc | tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null \
@@ -17,12 +16,12 @@ RUN mkdir /var/run/sshd && \
     echo "devuser:123456" | chpasswd && \
     echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config && \
     echo "PermitRootLogin no" >> /etc/ssh/sshd_config && \
-    echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config
+    echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config && \
+    sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-# কন্টেইনার রুট হিসেবেই চলবে, তাই USER devuser বাদ দেওয়া হয়েছে
 WORKDIR /home/devuser
 
 CMD ["/start.sh"]
