@@ -4,27 +4,19 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM=xterm-256color
 ENV COLORTERM=truecolor
 
+# Tailscale এবং প্রয়োজনীয় প্যাকেজ ইন্সটল
 RUN apt-get update && apt-get install -y \
-    openssh-server curl wget git nano python3 \
-    && curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc | tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null \
-    && echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | tee /etc/apt/sources.list.d/ngrok.list \
-    && apt-get update && apt-get install -y ngrok \
+    curl wget git nano python3 \
+    && curl -fsSL https://tailscale.com/install.sh | sh \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir /var/run/sshd && \
-    useradd -m -s /bin/bash -u 1000 devuser && \
-    echo "devuser:123456" | chpasswd && \
-    rm -rf /etc/ssh/sshd_config.d/* && \
-    sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config && \
-    sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config && \
-    sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/g' /etc/ssh/sshd_config && \
-    sed -i 's/^#*UsePAM.*/UsePAM no/g' /etc/ssh/sshd_config && \
-    echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config && \
-    echo "UsePAM no" >> /etc/ssh/sshd_config
+# ইউজার তৈরি
+RUN useradd -m -s /bin/bash -u 1000 devuser
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
 WORKDIR /home/devuser
 
+# কন্টেইনার রুট হিসেবেই চলবে, তাই sudo দরকার নেই
 CMD ["/start.sh"]
